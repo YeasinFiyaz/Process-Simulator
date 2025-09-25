@@ -47,6 +47,29 @@ Round-Robin (RR): Preemptive, fixed time quantum, fair time slicing among ready 
 
  - Probabilistic workload generator
 
+# CLI Usage: 
+Usage: proc-sim [ALGO] [OPTIONS]
+
+ALGO:
+  fcfs                First-Come, First-Served
+  sjf                 Shortest Job First (non-preemptive)
+  rr                  Round-Robin (preemptive)
+
+Input (choose one):
+  --procs  "PID,AT,BT" ...   Inline processes (repeatable)
+  --json   PATH              JSON array with pid/arrival/burst
+  --csv    PATH              CSV with columns: pid,arrival,burst
+
+Options:
+  --quantum INT              Time quantum for RR (required for rr)
+  --context-overhead INT     Context switch cost (default: 0)
+  --color / --no-color       Colored output (default: color)
+  --sort-pid                 Stable tie-break on PID (default on)
+  --export PATH              Save results as JSON
+  -q, --quiet                Only print metrics (no chart)
+  -h, --help
+
+
 # Acknowledgements
 
 Built for students learning OS scheduling and for anyone who likes pretty ASCII timelines. Inspired by classic OS textbooks and lab exercises.
