@@ -30,3 +30,22 @@ class Process:
         if self.arrival < 0:
             raise ValueError(f"Process {self.pid} has negative arrival time.")
         self.remaining = self.burst
+    def load_processes_from_csv(path: str) -> List[Process]:
+    """
+    CSV columns (header required): pid,arrival,burst
+    Example:
+      pid,arrival,burst
+      P1,0,5
+      P2,2,3
+      P3,4,2
+    """
+    out: List[Process] = []
+    with open(path, newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            out.append(Process(
+                pid=str(row['pid']).strip(),
+                arrival=int(row['arrival']),
+                burst=int(row['burst'])
+            ))
+    return out        
