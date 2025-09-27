@@ -48,4 +48,7 @@ class Process:
                 arrival=int(row['arrival']),
                 burst=int(row['burst'])
             ))
-    return out        
+    return out
+    def deep_copy_procs(procs: List[Process]) -> List[Process]:
+    # Create fresh (mutable) copies so one run doesn't affect another
+    return [Process(p.pid, p.arrival, p.burst) for p in procs]
