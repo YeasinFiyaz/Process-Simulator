@@ -52,3 +52,10 @@ class Process:
     def deep_copy_procs(procs: List[Process]) -> List[Process]:
     # Create fresh (mutable) copies so one run doesn't affect another
     return [Process(p.pid, p.arrival, p.burst) for p in procs]
+    def ascii_gantt(timeline: List[Tuple[int, int, Optional[str]]]) -> str:
+    """
+    timeline: list of (start, end, pid) where pid=None means CPU idle
+    Returns a single multi-line string.
+    """
+    if not timeline:
+        return "(empty timeline)"
