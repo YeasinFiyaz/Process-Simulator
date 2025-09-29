@@ -59,3 +59,20 @@ class Process:
     """
     if not timeline:
         return "(empty timeline)"
+        # Top bar and labels
+    bar = []
+    lbl = []
+    ticks = []
+    cursor = timeline[0][0]
+    ticks.append(str(cursor))
+    for (s, e, pid) in timeline:
+        width = max(1, e - s)
+        name = pid if pid is not None else "IDLE"
+        seg = f"|{name:^{width*2}}"
+        bar.append(seg)
+        ticks.append(str(e))
+    top = "".join(bar) + "|"
+    # Build tick line aligned roughly under segment borders
+    # (coarse approximation for CLI readability)
+    tick_line = " ".join(ticks)
+    return f"{top}\n{tick_line}"    
