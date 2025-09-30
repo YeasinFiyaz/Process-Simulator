@@ -76,3 +76,46 @@ class Process:
     # (coarse approximation for CLI readability)
     tick_line = " ".join(ticks)
     return f"{top}\n{tick_line}"    
+    
+    def compute_metrics(procs: List[Process]) -> Dict[str, Dict[str, float]]:
+    """
+    Assumes completion & first_start set. Returns:
+    {
+      'per_process': {pid: {'WT':..., 'TAT':..., 'RT':..., 'CT':...}},
+      'overall': {'AVG_WT':..., 'AVG_TAT':..., 'AVG_RT':..., 'THROUGHPUT':..., 'CPU_UTIL':...}
+    }
+    """
+    n = len(procs)
+    if n == 0:
+        return {'per_process': {}, 'overall': {}}
+
+    # Compute start/end of simulation
+    min_arrival = min(p.arrival for p in procs)
+    max_completion = max(p.completion or 0 for p in procs)
+
+    total_busy = sum(p.burst for p in procs)
+    total_time = max_completion - min_arrival if max_completion > min_arrival else 0
+    cpu_util = (total_busy / total_time * 100.0) if total_time > 0 else 0.0
+    throughput = n / total_time if total_time > 0 else float('inf') if n > 0 else 0.0
+
+    per = {}
+    sum_wt = sum_tat = sum_rt = 0.0
+    for p in procs:
+        if p.completion is None or p.first_start is None:
+            raise RuntimeError(f"Process {p.pid} missing simulation fields.")
+        tat = p.completion - p.arrival
+        wt  = tat - p.burst
+        rt  = p.first_start - p.arrival
+        per[p.pid] = {'WT': wt, 'TAT': tat, 'RT': rt, 'CT': p.completion}
+        sum_wt += wt
+        sum_tat += tat
+        sum_rt += rt
+
+    overall = {
+        'AVG_WT': sum_wt / n,
+        'AVG_TAT': sum_tat / n,
+        'AVG_RT': sum_rt / n,
+        'THROUGHPUT': throughput,
+        'CPU_UTIL': cpu_util
+    }
+    return {'per_process': per, 'overall': overall}
