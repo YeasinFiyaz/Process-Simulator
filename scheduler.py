@@ -119,3 +119,29 @@ class Process:
         'CPU_UTIL': cpu_util
     }
     return {'per_process': per, 'overall': overall}
+# ---- Scheduling Algorithms ----
+    def simulate_fcfs(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
+    """
+    FCFS with arrival times. If CPU is idle and no process available, timeline records IDLE gap.
+    Returns timeline list of (start, end, pid) segments.
+    """
+    P = deep_copy_procs(procs)
+    # Sort by arrival, then by pid (stable tie-breaker)
+    P.sort(key=lambda x: (x.arrival, x.pid))
+    t = 0
+    timeline: List[Tuple[int, int, Optional[str]]] = []
+    for p in P:
+        if t < p.arrival:
+            # CPU idle
+            timeline.append((t, p.arrival, None))
+            t = p.arrival
+        p.first_start = t
+        start = t
+        t += p.burst
+        p.remaining = 0
+        p.completion = t
+        timeline.append((start, t, p.pid))
+    # copy back computed fields to original matched by pid
+    update_originals(procs, P)
+    return coalesce_timeline(timeline)
+
