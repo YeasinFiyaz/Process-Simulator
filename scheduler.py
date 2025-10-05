@@ -144,4 +144,33 @@ class Process:
     # copy back computed fields to original matched by pid
     update_originals(procs, P)
     return coalesce_timeline(timeline)
+    def simulate_sjf_nonpreemptive(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
+    """
+    SJF (non-preemptive) with arrival times.
+    """
+    P = deep_copy_procs(procs)
+    t = min(p.arrival for p in P) if P else 0
+    done = set()
+    timeline: List[Tuple[int, int, Optional[str]]] = []
+    while len(done) < len(P):
+        ready = [p for p in P if p.arrival <= t and p.pid not in done]
+        if not ready:
+            # jump to next arrival
+            next_t = min(p.arrival for p in P if p.pid not in done)
+            if t < next_t:
+                timeline.append((t, next_t, None))
+                t = next_t
+            continue
+        # choose shortest burst among ready (tie: arrival, then pid)
+        ready.sort(key=lambda x: (x.burst, x.arrival, x.pid))
+        p = ready[0]
+        p.first_start = t if p.first_start is None else p.first_start
+        start = t
+        t += p.burst
+        p.remaining = 0
+        p.completion = t
+        done.add(p.pid)
+        timeline.append((start, t, p.pid))
+    update_originals(procs, P)
+    return coalesce_timeline(timeline)
 
