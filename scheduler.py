@@ -30,7 +30,9 @@ class Process:
         if self.arrival < 0:
             raise ValueError(f"Process {self.pid} has negative arrival time.")
         self.remaining = self.burst
-    def load_processes_from_csv(path: str) -> List[Process]:
+
+# ---- Utilities ----
+def load_processes_from_csv(path: str) -> List[Process]:
     """
     CSV columns (header required): pid,arrival,burst
     Example:
@@ -49,17 +51,19 @@ class Process:
                 burst=int(row['burst'])
             ))
     return out
-    def deep_copy_procs(procs: List[Process]) -> List[Process]:
+
+def deep_copy_procs(procs: List[Process]) -> List[Process]:
     # Create fresh (mutable) copies so one run doesn't affect another
     return [Process(p.pid, p.arrival, p.burst) for p in procs]
-    def ascii_gantt(timeline: List[Tuple[int, int, Optional[str]]]) -> str:
+
+def ascii_gantt(timeline: List[Tuple[int, int, Optional[str]]]) -> str:
     """
     timeline: list of (start, end, pid) where pid=None means CPU idle
     Returns a single multi-line string.
     """
     if not timeline:
         return "(empty timeline)"
-        # Top bar and labels
+    # Top bar and labels
     bar = []
     lbl = []
     ticks = []
@@ -75,9 +79,9 @@ class Process:
     # Build tick line aligned roughly under segment borders
     # (coarse approximation for CLI readability)
     tick_line = " ".join(ticks)
-    return f"{top}\n{tick_line}"    
-    
-    def compute_metrics(procs: List[Process]) -> Dict[str, Dict[str, float]]:
+    return f"{top}\n{tick_line}"
+
+def compute_metrics(procs: List[Process]) -> Dict[str, Dict[str, float]]:
     """
     Assumes completion & first_start set. Returns:
     {
@@ -119,8 +123,9 @@ class Process:
         'CPU_UTIL': cpu_util
     }
     return {'per_process': per, 'overall': overall}
+
 # ---- Scheduling Algorithms ----
-    def simulate_fcfs(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
+def simulate_fcfs(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
     """
     FCFS with arrival times. If CPU is idle and no process available, timeline records IDLE gap.
     Returns timeline list of (start, end, pid) segments.
@@ -144,7 +149,8 @@ class Process:
     # copy back computed fields to original matched by pid
     update_originals(procs, P)
     return coalesce_timeline(timeline)
-    def simulate_sjf_nonpreemptive(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
+
+def simulate_sjf_nonpreemptive(procs: List[Process]) -> List[Tuple[int, int, Optional[str]]]:
     """
     SJF (non-preemptive) with arrival times.
     """
@@ -170,37 +176,11 @@ class Process:
         p.remaining = 0
         p.completion = t
         done.add(p.pid)
-        def simulate_rr(procs: List[Process], quantum: int) -> List[Tuple[int, int, Optional[str]]]:
-    """
-    Round Robin (preemptive) with arrival times and time quantum > 0.
-    Uses a standard ready queue; on ties, lower arrival then pid order.
-    """
-    if quantum <= 0:
-        raise ValueError("Quantum must be > 0 for Round Robin.")
-
-    P = deep_copy_procs(procs)
-    t = min((p.arrival for p in P), default=0)
-    timeline: List[Tuple[int, int, Optional[str]]] = []
-
-    # Ready queue holds indices into P
-    ready: List[int] = []
-    visited = set()  # to seed arrivals only once per time
-    # helper to enqueue any arrived processes at time t
-    def enqueue_arrivals(current_time: int):
-        for i, p in enumerate(P):
-            # add to ready when it has arrived and still has work and not in ready
-            if p.arrival <= current_time and p.remaining > 0 and i not in ready:
-                # avoid flooding: but order matters; we'll add in arrival order later
-                pass
-        # Build a deterministic ordering: by arrival then pid, include only those not already in ready and not finished
-        newly = [i for i, p in enumerate(P) if p.arrival <= current_time and p.remaining > 0 and i not in ready]
-        newly.sort(key=lambda i: (P[i].arrival, P[i].pid))
-        for i in newly:
-            ready.append(i)
         timeline.append((start, t, p.pid))
     update_originals(procs, P)
     return coalesce_timeline(timeline)
-    def simulate_rr(procs: List[Process], quantum: int) -> List[Tuple[int, int, Optional[str]]]:
+
+def simulate_rr(procs: List[Process], quantum: int) -> List[Tuple[int, int, Optional[str]]]:
     """
     Round Robin (preemptive) with arrival times and time quantum > 0.
     Uses a standard ready queue; on ties, lower arrival then pid order.
@@ -244,7 +224,8 @@ class Process:
             enqueue_arrivals(t)
             if not ready:
                 continue
-         idx = ready.pop(0)
+
+        idx = ready.pop(0)
         p = P[idx]
         # Set response time if first run
         if p.first_start is None:
@@ -267,6 +248,7 @@ class Process:
 
     update_originals(procs, P)
     return coalesce_timeline(timeline)
+
 def update_originals(target: List[Process], src: List[Process]) -> None:
     # copy computed fields back by pid mapping
     bypid = {p.pid: p for p in src}
@@ -275,6 +257,7 @@ def update_originals(target: List[Process], src: List[Process]) -> None:
         t.first_start = s.first_start
         t.completion = s.completion
         t.remaining = s.remaining
+
 def coalesce_timeline(tl: List[Tuple[int, int, Optional[str]]]) -> List[Tuple[int, int, Optional[str]]]:
     # Merge adjacent segments with the same pid (including None for IDLE)
     if not tl:
@@ -287,6 +270,7 @@ def coalesce_timeline(tl: List[Tuple[int, int, Optional[str]]]) -> List[Tuple[in
         else:
             merged.append((s, e, pid))
     return merged
+
 # ---- CLI and Display ----
 def print_report(algoname: str, procs: List[Process], timeline: List[Tuple[int,int,Optional[str]]], plot: bool):
     print(f"\n=== {algoname} ===")
@@ -334,7 +318,6 @@ def plot_gantt_matplotlib(algoname: str, timeline: List[Tuple[int,int,Optional[s
         ax.barh(y, e - s, left=s, height=0.4)
         ax.text((s + e) / 2, y, label, va='center', ha='center')
 
-
     ax.set_yticks(list(pid_to_row.values()) + [idle_row])
     ax.set_yticklabels(list(pid_to_row.keys()) + ["IDLE"])
     ax.set_xlabel("Time")
@@ -361,7 +344,6 @@ P3,4,2
 P4,6,4
 """
     )
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -399,6 +381,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
