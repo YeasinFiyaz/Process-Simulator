@@ -227,3 +227,20 @@ class Process:
         newly.sort(key=lambda i: (P[i].arrival, P[i].pid))
         for i in newly:
             ready.append(i)
+
+    # Initialize time to first arrival and push that/those into ready
+    enqueue_arrivals(t)
+
+    while any(p.remaining > 0 for p in P):
+        if not ready:
+            # CPU idle: jump to next arrival time
+            future_arrivals = [p.arrival for p in P if p.remaining > 0 and p.arrival > t]
+            if not future_arrivals:
+                break  # nothing left somehow
+            next_t = min(future_arrivals)
+            if t < next_t:
+                timeline.append((t, next_t, None))
+                t = next_t
+            enqueue_arrivals(t)
+            if not ready:
+                continue
