@@ -362,3 +362,43 @@ P4,6,4
 """
     )
 
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="CPU Scheduling Simulator (FCFS, SJF, RR) with arrival times, ASCII and optional matplotlib Gantt."
+    )
+    parser.add_argument("--algo", choices=["fcfs","sjf","rr"], required=True, help="Scheduling algorithm")
+    parser.add_argument("--csv", type=str, help="Path to CSV with columns: pid,arrival,burst")
+    parser.add_argument("--quantum", type=int, default=2, help="Time quantum for Round Robin (default: 2)")
+    parser.add_argument("--plot", action="store_true", help="Show matplotlib Gantt chart")
+    parser.add_argument("--example-csv", action="store_true", help="Print an example CSV and exit")
+    args = parser.parse_args()
+
+    if args.example_csv:
+        print_example_csv()
+        sys.exit(0)
+
+    if args.csv:
+        procs = load_processes_from_csv(args.csv)
+    else:
+        # Use built-in example if no CSV provided
+        procs = example_processes()
+
+    # Keep a clean copy for each simulation
+    base = deep_copy_procs(procs)
+
+    if args.algo == "fcfs":
+        timeline = simulate_fcfs(base)
+        print_report("FCFS", base, timeline, args.plot)
+    elif args.algo == "sjf":
+        timeline = simulate_sjf_nonpreemptive(base)
+        print_report("SJF (Non-Preemptive)", base, timeline, args.plot)
+    elif args.algo == "rr":
+        timeline = simulate_rr(base, args.quantum)
+        print_report(f"Round Robin (q={args.quantum})", base, timeline, args.plot)
+
+if __name__ == "__main__":
+    main()
+
+
+
