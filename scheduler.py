@@ -310,3 +310,11 @@ def print_report(algoname: str, procs: List[Process], timeline: List[Tuple[int,i
     print(f"Avg Response Time    : {o['AVG_RT']:.2f}")
     print(f"Throughput (jobs/unit time): {o['THROUGHPUT']:.3f}")
     print(f"CPU Utilization      : {o['CPU_UTIL']:.2f}%")
+
+    if plot:
+        if not _HAS_MPL:
+            print("\n(matplotlib not available; install it to use --plot)")
+        else:
+            plot_gantt_matplotlib(algoname, timeline)
+
+
