@@ -275,3 +275,15 @@ def update_originals(target: List[Process], src: List[Process]) -> None:
         t.first_start = s.first_start
         t.completion = s.completion
         t.remaining = s.remaining
+def coalesce_timeline(tl: List[Tuple[int, int, Optional[str]]]) -> List[Tuple[int, int, Optional[str]]]:
+    # Merge adjacent segments with the same pid (including None for IDLE)
+    if not tl:
+        return tl
+    merged = [tl[0]]
+    for s, e, pid in tl[1:]:
+        ps, pe, ppid = merged[-1]
+        if pid == ppid and ps <= s == pe:
+            merged[-1] = (ps, e, pid)
+        else:
+            merged.append((s, e, pid))
+    return merged
