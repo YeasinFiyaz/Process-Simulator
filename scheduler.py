@@ -267,4 +267,11 @@ class Process:
 
     update_originals(procs, P)
     return coalesce_timeline(timeline)
-
+def update_originals(target: List[Process], src: List[Process]) -> None:
+    # copy computed fields back by pid mapping
+    bypid = {p.pid: p for p in src}
+    for t in target:
+        s = bypid[t.pid]
+        t.first_start = s.first_start
+        t.completion = s.completion
+        t.remaining = s.remaining
