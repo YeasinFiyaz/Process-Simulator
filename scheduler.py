@@ -255,3 +255,16 @@ class Process:
         t += run
         p.remaining -= run
         timeline.append((start, t, p.pid))
+
+        # Add any arrivals that showed up during this run
+        enqueue_arrivals(t)
+
+        if p.remaining > 0:
+            # requeue this process to tail
+            ready.append(idx)
+        else:
+            p.completion = t
+
+    update_originals(procs, P)
+    return coalesce_timeline(timeline)
+
