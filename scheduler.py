@@ -302,3 +302,11 @@ def print_report(algoname: str, procs: List[Process], timeline: List[Tuple[int,i
     for p in sorted(procs, key=lambda x: x.pid):
         d = m['per_process'][p.pid]
         print(f"{p.pid:<6} {p.arrival:>4} {p.burst:>4} {int(d['CT']):>5} {int(d['TAT']):>5} {int(d['WT']):>5} {int(d['RT']):>5}")
+
+    o = m['overall']
+    print("\nOverall:")
+    print(f"Avg Waiting Time     : {o['AVG_WT']:.2f}")
+    print(f"Avg Turnaround Time  : {o['AVG_TAT']:.2f}")
+    print(f"Avg Response Time    : {o['AVG_RT']:.2f}")
+    print(f"Throughput (jobs/unit time): {o['THROUGHPUT']:.3f}")
+    print(f"CPU Utilization      : {o['CPU_UTIL']:.2f}%")
