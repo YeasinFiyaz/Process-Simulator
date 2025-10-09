@@ -1,0 +1,28 @@
+<!-- procsim/sim/templates/sim/base.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{% block title %}Process Scheduling Simulator{% endblock %}</title>
+  <!-- Tailwind CDN for quick styling (swap to static build in production) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white border-b">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
+      <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-900 text-white text-sm">CPU</span>
+      <h1 class="text-lg font-semibold">Process Scheduling Simulator</h1>
+      <span class="ml-auto text-sm text-gray-500">FCFS • SJF • Round-Robin</span>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="max-w-5xl mx-auto px-4 py-8 text-xs text-gray-500">
+    Built on Django; algorithms powered by your Python engine.
+  </footer>
+</body>
+</html>
