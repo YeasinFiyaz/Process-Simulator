@@ -317,4 +317,21 @@ def print_report(algoname: str, procs: List[Process], timeline: List[Tuple[int,i
         else:
             plot_gantt_matplotlib(algoname, timeline)
 
+def plot_gantt_matplotlib(algoname: str, timeline: List[Tuple[int,int,Optional[str]]]):
+    """
+    Creates a simple Gantt-like bar chart using matplotlib.
+    Each contiguous segment is plotted on a separate row by PID (IDLE at bottom).
+    """
+    # Build rows for each PID
+    pids = sorted({pid for _,_,pid in timeline if pid is not None})
+    pid_to_row = {pid: i for i, pid in enumerate(pids)}
+    idle_row = len(pids)  # IDLE gets last row
+
+    fig, ax = plt.subplots(figsize=(10, 1.5 + 0.5*len(pids)))
+    for s, e, pid in timeline:
+        y = idle_row if pid is None else pid_to_row[pid]
+        label = "IDLE" if pid is None else pid
+        ax.barh(y, e - s, left=s, height=0.4)
+        ax.text((s + e) / 2, y, label, va='center', ha='center')
+
 
