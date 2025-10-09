@@ -335,3 +335,10 @@ def plot_gantt_matplotlib(algoname: str, timeline: List[Tuple[int,int,Optional[s
         ax.text((s + e) / 2, y, label, va='center', ha='center')
 
 
+    ax.set_yticks(list(pid_to_row.values()) + [idle_row])
+    ax.set_yticklabels(list(pid_to_row.keys()) + ["IDLE"])
+    ax.set_xlabel("Time")
+    ax.set_title(f"Gantt Chart — {algoname}")
+    ax.invert_yaxis()
+    plt.tight_layout()
+    plt.show()
