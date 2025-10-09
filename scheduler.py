@@ -287,3 +287,18 @@ def coalesce_timeline(tl: List[Tuple[int, int, Optional[str]]]) -> List[Tuple[in
         else:
             merged.append((s, e, pid))
     return merged
+# ---- CLI and Display ----
+def print_report(algoname: str, procs: List[Process], timeline: List[Tuple[int,int,Optional[str]]], plot: bool):
+    print(f"\n=== {algoname} ===")
+    print("\nGantt (ASCII):")
+    print(ascii_gantt(timeline))
+
+    m = compute_metrics(procs)
+    print("\nPer-Process Metrics:")
+    header = f"{'PID':<6} {'AT':>4} {'BT':>4} {'CT':>5} {'TAT':>5} {'WT':>5} {'RT':>5}"
+    print(header)
+    print("-" * len(header))
+    # sort by pid for stable view
+    for p in sorted(procs, key=lambda x: x.pid):
+        d = m['per_process'][p.pid]
+        print(f"{p.pid:<6} {p.arrival:>4} {p.burst:>4} {int(d['CT']):>5} {int(d['TAT']):>5} {int(d['WT']):>5} {int(d['RT']):>5}")
