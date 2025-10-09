@@ -342,3 +342,23 @@ def plot_gantt_matplotlib(algoname: str, timeline: List[Tuple[int,int,Optional[s
     ax.invert_yaxis()
     plt.tight_layout()
     plt.show()
+
+def example_processes() -> List[Process]:
+    return [
+        Process("P1", 0, 5),
+        Process("P2", 2, 3),
+        Process("P3", 4, 2),
+        Process("P4", 6, 4),
+    ]
+
+def print_example_csv():
+    print(
+"""# Example CSV (save as procs.csv)
+pid,arrival,burst
+P1,0,5
+P2,2,3
+P3,4,2
+P4,6,4
+"""
+    )
+
