@@ -1,0 +1,12 @@
+# 1) New project & app
+pip install django
+django-admin startproject procsim
+cd procsim
+python manage.py startapp sim
+
+# 2) Put your existing scheduler.py into the sim app folder:
+#    procsim/sim/scheduler.py  (exact code you shared)
+
+# 3) Add the files below, then run:
+python manage.py migrate
+python manage.py runserver
