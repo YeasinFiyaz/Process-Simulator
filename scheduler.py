@@ -244,3 +244,14 @@ class Process:
             enqueue_arrivals(t)
             if not ready:
                 continue
+         idx = ready.pop(0)
+        p = P[idx]
+        # Set response time if first run
+        if p.first_start is None:
+            p.first_start = t
+
+        run = min(quantum, p.remaining)
+        start = t
+        t += run
+        p.remaining -= run
+        timeline.append((start, t, p.pid))
