@@ -200,4 +200,30 @@ class Process:
         timeline.append((start, t, p.pid))
     update_originals(procs, P)
     return coalesce_timeline(timeline)
+    def simulate_rr(procs: List[Process], quantum: int) -> List[Tuple[int, int, Optional[str]]]:
+    """
+    Round Robin (preemptive) with arrival times and time quantum > 0.
+    Uses a standard ready queue; on ties, lower arrival then pid order.
+    """
+    if quantum <= 0:
+        raise ValueError("Quantum must be > 0 for Round Robin.")
 
+    P = deep_copy_procs(procs)
+    t = min((p.arrival for p in P), default=0)
+    timeline: List[Tuple[int, int, Optional[str]]] = []
+
+    # Ready queue holds indices into P
+    ready: List[int] = []
+    visited = set()  # to seed arrivals only once per time
+    # helper to enqueue any arrived processes at time t
+    def enqueue_arrivals(current_time: int):
+        for i, p in enumerate(P):
+            # add to ready when it has arrived and still has work and not in ready
+            if p.arrival <= current_time and p.remaining > 0 and i not in ready:
+                # avoid flooding: but order matters; we'll add in arrival order later
+                pass
+        # Build a deterministic ordering: by arrival then pid, include only those not already in ready and not finished
+        newly = [i for i, p in enumerate(P) if p.arrival <= current_time and p.remaining > 0 and i not in ready]
+        newly.sort(key=lambda i: (P[i].arrival, P[i].pid))
+        for i in newly:
+            ready.append(i)
