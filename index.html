@@ -1,0 +1,143 @@
+<!-- procsim/sim/templates/sim/index.html -->
+{% extends "sim/base.html" %}
+{% block title %}Simulator · Django{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-6">
+  {% csrf_token %}
+
+  <!-- Left: config + inputs -->
+  <section class="md:col-span-1 space-y-4">
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <h2 class="font-semibold">Configuration</h2>
+      <div>
+        <label class="block text-sm mb-1">Algorithm</label>
+        {{ form.algorithm|add_class:"border rounded-xl px-3 py-2 w-full" }}
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Quantum (RR only)</label>
+        {{ form.quantum|add_class:"border rounded-xl px-3 py-2 w-full" }}
+        <p class="text-xs text-gray-500 mt-1">{{ form.fields.quantum.help_text }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-4 space-y-3">
+      <h2 class="font-semibold">Processes</h2>
+      <div>
+        <label class="block text-sm mb-1">Inline</label>
+        {{ form.inline_procs|add_class:"border rounded-xl px-3 py-2 w-full font-mono" }}
+        <p class="text-xs text-gray-500 mt-1">{{ form.fields.inline_procs.help_text }}</p>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm mb-1">CSV file</label>
+          {{ form.csv_file|add_class:"block w-full text-sm" }}
+        </div>
+        <div>
+          <label class="block text-sm mb-1">JSON file</label>
+          {{ form.json_file|add_class:"block w-full text-sm" }}
+        </div>
+      </div>
+      {% if form.errors %}
+        <div class="text-sm bg-red-50 border border-red-300 text-red-800 rounded-xl p-3">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="flex gap-2">
+      <button class="flex-1 px-4 py-2 rounded-2xl bg-emerald-600 text-white font-medium">Run</button>
+      <a href="/" class="px-4 py-2 rounded-2xl bg-gray-200 font-medium">Reset</a>
+    </div>
+  </section>
+
+  <!-- Right: outputs -->
+  <section class="md:col-span-2 space-y-6">
+    {% if svg %}
+      <div class="bg-white rounded-2xl shadow p-4">
+        <h2 class="font-semibold mb-3">Gantt Chart — {{ algoname }}</h2>
+        <div class="overflow-x-auto">
+          {{ svg|safe }}
+        </div>
+        <details class="bg-gray-50 rounded-xl p-3 mt-3">
+          <summary class="cursor-pointer text-sm font-medium">ASCII View</summary>
+          <pre class="mt-2 text-xs whitespace-pre overflow-x-auto">{{ ascii }}</pre>
+        </details>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-4">
+          <h2 class="font-semibold mb-3">Per-Process Metrics</h2>
+          <div class="overflow-auto border rounded-xl">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="p-2 text-left">PID</th>
+                  <th class="p-2 text-right">AT</th>
+                  <th class="p-2 text-right">BT</th>
+                  <th class="p-2 text-right">CT</th>
+                  <th class="p-2 text-right">TAT</th>
+                  <th class="p-2 text-right">WT</th>
+                  <th class="p-2 text-right">RT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pid, d in per.items|dictsort %}
+                  {% with proc=procs|dictsort:"pid" %}
+                  <tr class="border-t">
+                    <td class="p-2">{{ pid }}</td>
+                    {% for p in procs %}
+                      {% if p.pid == pid %}
+                        <td class="p-2 text-right">{{ p.arrival }}</td>
+                        <td class="p-2 text-right">{{ p.burst }}</td>
+                      {% endif %}
+                    {% endfor %}
+                    <td class="p-2 text-right">{{ d.CT|floatformat:0 }}</td>
+                    <td class="p-2 text-right">{{ d.TAT|floatformat:0 }}</td>
+                    <td class="p-2 text-right">{{ d.WT|floatformat:0 }}</td>
+                    <td class="p-2 text-right">{{ d.RT|floatformat:0 }}</td>
+                  </tr>
+                  {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-4">
+          <h2 class="font-semibold mb-3">Overall Stats</h2>
+          <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="rounded-xl border p-3">
+              <p class="text-gray-600">Avg Waiting Time</p>
+              <p class="text-xl font-semibold">{{ overall.AVG_WT|floatformat:2 }}</p>
+            </div>
+            <div class="rounded-xl border p-3">
+              <p class="text-gray-600">Avg Turnaround</p>
+              <p class="text-xl font-semibold">{{ overall.AVG_TAT|floatformat:2 }}</p>
+            </div>
+            <div class="rounded-xl border p-3">
+              <p class="text-gray-600">Avg Response</p>
+              <p class="text-xl font-semibold">{{ overall.AVG_RT|floatformat:2 }}</p>
+            </div>
+            <div class="rounded-xl border p-3">
+              <p class="text-gray-600">Throughput</p>
+              <p class="text-xl font-semibold">
+                {% if overall.THROUGHPUT|floatformat:3 == "inf" %}&infin;{% else %}{{ overall.THROUGHPUT|floatformat:3 }}{% endif %}
+              </p>
+            </div>
+            <div class="rounded-xl border p-3 col-span-2">
+              <p class="text-gray-600">CPU Utilization</p>
+              <p class="text-xl font-semibold">{{ overall.CPU_UTIL|floatformat:2 }}%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="bg-white rounded-2xl shadow p-6 text-sm text-gray-600">
+        <p>Provide processes and click <span class="font-medium">Run</span> to generate a Gantt chart, ASCII output, and metrics.</p>
+        <p class="mt-2">You can paste inline, or upload a <code>.csv</code> (<code>pid,arrival,burst</code>) or a JSON file.</p>
+      </div>
+    {% endif %}
+  </section>
+</form>
+{% endblock %}
